@@ -6,6 +6,11 @@
     <meta name="6a97888e-site-verification" content="f37e8478497448b68521048ad46f0f25">
     <title>भारत समाचार - ताज़ा ख़बरें</title>
     
+    <!-- Video.js & VAST Player CSS -->
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs-contrib-ads.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.css" rel="stylesheet" />
+
     <style>
         * {
             margin: 0;
@@ -38,23 +43,6 @@
             color: #ffddd2;
         }
 
-        /* विज्ञापन ब्लॉक */
-        .ad-container {
-            text-align: center;
-            margin: 15px auto;
-            padding: 10px;
-            background: #e9ecef;
-            border: 1px dashed #ccc;
-            max-width: 1100px;
-        }
-
-        .ad-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
         /* लेआउट (न्यूज़ + साइडबार) */
         .layout {
             display: flex;
@@ -64,7 +52,7 @@
         }
 
         .news-section {
-            flex: 3;
+            flex: 2;
         }
 
         .news-section h2 {
@@ -82,10 +70,18 @@
             background: #fff;
             border: 1px solid #ddd;
             padding: 15px;
-            text-align: center;
-            min-height: 250px;
+            border-radius: 8px;
             position: sticky;
             top: 20px;
+        }
+
+        .ad-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+            text-align: center;
         }
 
         /* न्यूज़ कार्ड */
@@ -150,6 +146,18 @@
             background: #457b9d;
         }
 
+        /* वीडियो प्लेयर रिस्पॉन्सिव */
+        .video-container {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .video-js {
+            width: 100% !important;
+            height: 220px !important;
+            border-radius: 6px;
+        }
+
         /* फुटर */
         .footer {
             background: #1d3557;
@@ -176,15 +184,6 @@
         </div>
     </header>
 
-    <!-- टॉप विज्ञापन (ExoClick Banner Ad) -->
-    <div class="ad-container top-ad">
-        <p class="ad-label">विज्ञापन (Advertisement)</p>
-        <div id="exoclick-header-ad">
-            <!-- ExoClick का Banner Ad Code यहाँ पेस्ट करें -->
-            <p style="color: #777; font-size: 14px;">[ ExoClick Banner Ad Place ]</p>
-        </div>
-    </div>
-
     <!-- मुख्य कंटेंट -->
     <main class="container layout">
         <!-- न्यूज़ लिस्ट -->
@@ -195,13 +194,14 @@
             </div>
         </section>
 
-        <!-- साइडबार (ExoClick Video Ad) -->
+        <!-- साइडबार (ExoClick VAST Video Ad Player) -->
         <aside class="sidebar">
             <div class="ad-box">
-                <p class="ad-label">स्पॉन्सर्ड (Video Ad)</p>
-                <div id="exoclick-sidebar-ad">
-                    <!-- ExoClick का Video / Interstitial Ad Code यहाँ पेस्ट करें -->
-                    <p style="color: #777; font-size: 14px;">[ ExoClick Video Ad Place ]</p>
+                <p class="ad-label">प्रायोजित वीडियो (Video Ad)</p>
+                <div class="video-container">
+                    <video id="content_video" class="video-js vjs-default-skin" controls preload="auto" playsinline muted>
+                        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+                    </video>
                 </div>
             </div>
         </aside>
@@ -212,12 +212,42 @@
         <p>&copy; 2026 भारत समाचार. सभी अधिकार सुरक्षित।</p>
     </footer>
 
-    <!-- JavaScript - CORS Proxy Enabled Auto-Fetch -->
+    <!-- Video.js & Google IMA (VAST Parser) Scripts -->
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs-contrib-ads.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.min.js"></script>
+
     <script>
-        // मूल RSS न्यूज़ फीड URL
+        // 1. ExoClick VAST Video Ad Setup
+        const vastTagUrl = 'https://s.magsrv.com/v1/vast.php?idzone=6051142'; // आपका ExoClick VAST Link
+
+        const player = videojs('content_video', {
+            autoplay: true,
+            muted: true
+        });
+
+        const imaOptions = {
+            id: 'content_video',
+            adTagUrl: vastTagUrl
+        };
+
+        player.ima(imaOptions);
+
+        // मोबाइल ऑटोप्ले सपोर्ट के लिए
+        var startEvent = 'touchstart';
+        if (navigator.userAgent.match(/iPhone/i) ||
+            navigator.userAgent.match(/iPad/i) ||
+            navigator.userAgent.match(/Android/i)) {
+            startEvent = 'touchend';
+        }
+
+        player.one(startEvent, function() {
+            player.ima.initializeAdDisplayContainer();
+        });
+
+        // 2. Free Public News API (CORS Free Google News RSS)
         const TARGET_URL = encodeURIComponent('https://news.google.com/rss?hl=hi&gl=IN&ceid=IN:hi');
-        
-        // CORS Proxy (यह ब्राउज़र के Fetch Block को बायपास कर देता है)
         const PROXY_URL = `https://api.allorigins.win/get?url=${TARGET_URL}`;
 
         async function fetchNews() {
@@ -225,11 +255,9 @@
 
             try {
                 const response = await fetch(PROXY_URL);
-                if (!response.ok) throw new Error('Network response failed');
+                if (!response.ok) throw new Error('Network error');
                 
                 const data = await response.json();
-                
-                // RSS XML पार्सिंग
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(data.contents, "text/xml");
                 const items = xmlDoc.querySelectorAll("item");
@@ -238,13 +266,11 @@
                     newsContainer.innerHTML = '';
 
                     items.forEach((item, index) => {
-                        if (index >= 12) return; // केवल 12 ख़बरें दिखाएँ
+                        if (index >= 12) return;
 
                         const title = item.querySelector("title")?.textContent || 'ताज़ा समाचार';
                         const link = item.querySelector("link")?.textContent || '#';
                         const pubDate = item.querySelector("pubDate")?.textContent || '';
-                        
-                        // Google News RSS लाइव फ़ोटो
                         const imageUrl = `https://picsum.photos/300/180?random=${index}`;
 
                         const newsCard = `
@@ -264,7 +290,7 @@
                 }
             } catch (error) {
                 console.error('Fetch Error:', error);
-                newsContainer.innerHTML = '<p>ख़बरें लोड करने में समस्या आई। कृपया इंटरनेट कनेक्शन जाँचें।</p>';
+                newsContainer.innerHTML = '<p>ख़बरें लोड करने में समस्या आई।</p>';
             }
         }
 
