@@ -6,10 +6,8 @@
     <meta name="6a97888e-site-verification" content="f37e8478497448b68521048ad46f0f25">
     <title>भारत समाचार - ताज़ा ख़बरें</title>
     
-    <!-- Video.js & VAST Player CSS -->
-    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs-contrib-ads.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.css" rel="stylesheet" />
+    <!-- Fluid Player (Official ExoClick Compatible VAST Player) -->
+    <script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
 
     <style>
         * {
@@ -146,13 +144,13 @@
             background: #457b9d;
         }
 
-        /* वीडियो प्लेयर रिस्पॉन्सिव */
+        /* वीडियो प्लेयर कंटेनर */
         .video-container {
             width: 100%;
             margin-bottom: 10px;
         }
 
-        .video-js {
+        .video-container video {
             width: 100% !important;
             height: 220px !important;
             border-radius: 6px;
@@ -194,14 +192,13 @@
             </div>
         </section>
 
-        <!-- साइडबार (ExoClick VAST Video Ad Player) -->
+        <!-- साइडबार (ExoClick Video Ad Player) -->
         <aside class="sidebar">
             <div class="ad-box">
                 <p class="ad-label">प्रायोजित वीडियो (Video Ad)</p>
-                <div class="video-container" id="video-wrapper">
-                    <!-- Mobile inline & muted setup -->
-                    <video id="content_video" class="video-js vjs-default-skin" controls preload="auto" playsinline webkit-playsinline muted>
-                        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+                <div class="video-container">
+                    <video id="my-video" playsinline muted>
+                        <source src="https://cdn.fluidplayer.com/videos/valerian.mp4" type="video/mp4"/>
                     </video>
                 </div>
             </div>
@@ -213,43 +210,29 @@
         <p>&copy; 2026 भारत समाचार. सभी अधिकार सुरक्षित।</p>
     </footer>
 
-    <!-- Video.js & Google IMA Scripts -->
-    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
-    <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs-contrib-ads.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.min.js"></script>
-
+    <!-- JavaScript Execution -->
     <script>
-        // 1. ExoClick VAST Video Ad Setup[span_9](start_span)[span_9](end_span)
-        const vastTagUrl = 'https://s.magsrv.com/v1/vast.php?idzone=6051142';[span_10](start_span)[span_10](end_span)
-
-        const player = videojs('content_video', {
-            autoplay: 'muted', // Mobile Autoplay Fix
-            muted: true,
-            controls: true,
-            playsinline: true
+        // 1. ExoClick Fluid Player VAST Tag Initialization
+        document.addEventListener("DOMContentLoaded", function() {
+            var player = fluidPlayer('my-video', {
+                layoutControls: {
+                    autoPlay: true,
+                    mute: true,
+                    playButtonShowing: true,
+                    responsive: true
+                },
+                vastOptions: {
+                    adList: [
+                        {
+                            roll: 'preRoll', // वीडियो शुरू होने से ठीक पहले विज्ञापन चलेगा
+                            vastTag: 'https://s.magsrv.com/v1/vast.php?idzone=6051142' // आपका ExoClick VAST Link
+                        }
+                    ]
+                }
+            });
         });
 
-        const imaOptions = {
-            id: 'content_video',
-            adTagUrl: vastTagUrl,
-            showControlsForAdPlayer: true
-        };
-
-        player.ima(imaOptions);
-
-        // Mobile Browser Interaction Fix
-        var initAdDisplayContainer = function() {
-            player.ima.initializeAdDisplayContainer();
-            wrapper.removeEventListener('touchend', initAdDisplayContainer);
-            wrapper.removeEventListener('click', initAdDisplayContainer);
-        };
-
-        var wrapper = document.getElementById('video-wrapper');
-        wrapper.addEventListener('touchend', initAdDisplayContainer, false);
-        wrapper.addEventListener('click', initAdDisplayContainer, false);
-
-        // 2. Free Public News API
+        // 2. Google News RSS Free Public API (Auto Fetch)
         const TARGET_URL = encodeURIComponent('https://news.google.com/rss?hl=hi&gl=IN&ceid=IN:hi');
         const PROXY_URL = `https://api.allorigins.win/get?url=${TARGET_URL}`;
 
