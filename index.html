@@ -198,8 +198,9 @@
         <aside class="sidebar">
             <div class="ad-box">
                 <p class="ad-label">प्रायोजित वीडियो (Video Ad)</p>
-                <div class="video-container">
-                    <video id="content_video" class="video-js vjs-default-skin" controls preload="auto" playsinline muted>
+                <div class="video-container" id="video-wrapper">
+                    <!-- Mobile inline & muted setup -->
+                    <video id="content_video" class="video-js vjs-default-skin" controls preload="auto" playsinline webkit-playsinline muted>
                         <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
                     </video>
                 </div>
@@ -212,41 +213,43 @@
         <p>&copy; 2026 भारत समाचार. सभी अधिकार सुरक्षित।</p>
     </footer>
 
-    <!-- Video.js & Google IMA (VAST Parser) Scripts -->
+    <!-- Video.js & Google IMA Scripts -->
     <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
     <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs-contrib-ads.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.min.js"></script>
 
     <script>
-        // 1. ExoClick VAST Video Ad Setup
-        const vastTagUrl = 'https://s.magsrv.com/v1/vast.php?idzone=6051142'; // आपका ExoClick VAST Link
+        // 1. ExoClick VAST Video Ad Setup[span_9](start_span)[span_9](end_span)
+        const vastTagUrl = 'https://s.magsrv.com/v1/vast.php?idzone=6051142';[span_10](start_span)[span_10](end_span)
 
         const player = videojs('content_video', {
-            autoplay: true,
-            muted: true
+            autoplay: 'muted', // Mobile Autoplay Fix
+            muted: true,
+            controls: true,
+            playsinline: true
         });
 
         const imaOptions = {
             id: 'content_video',
-            adTagUrl: vastTagUrl
+            adTagUrl: vastTagUrl,
+            showControlsForAdPlayer: true
         };
 
         player.ima(imaOptions);
 
-        // मोबाइल ऑटोप्ले सपोर्ट के लिए
-        var startEvent = 'touchstart';
-        if (navigator.userAgent.match(/iPhone/i) ||
-            navigator.userAgent.match(/iPad/i) ||
-            navigator.userAgent.match(/Android/i)) {
-            startEvent = 'touchend';
-        }
-
-        player.one(startEvent, function() {
+        // Mobile Browser Interaction Fix
+        var initAdDisplayContainer = function() {
             player.ima.initializeAdDisplayContainer();
-        });
+            wrapper.removeEventListener('touchend', initAdDisplayContainer);
+            wrapper.removeEventListener('click', initAdDisplayContainer);
+        };
 
-        // 2. Free Public News API (CORS Free Google News RSS)
+        var wrapper = document.getElementById('video-wrapper');
+        wrapper.addEventListener('touchend', initAdDisplayContainer, false);
+        wrapper.addEventListener('click', initAdDisplayContainer, false);
+
+        // 2. Free Public News API
         const TARGET_URL = encodeURIComponent('https://news.google.com/rss?hl=hi&gl=IN&ceid=IN:hi');
         const PROXY_URL = `https://api.allorigins.win/get?url=${TARGET_URL}`;
 
